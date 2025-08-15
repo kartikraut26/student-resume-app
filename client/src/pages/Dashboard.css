@@ -45,3 +45,138 @@
   flex-grow: 1;
   padding: 40px;
 }
+
+.performance-dashboard {
+  font-family: Arial, sans-serif;
+  background: #f7f8fa;
+  padding: 20px;
+}
+
+/* Navbar */
+.top-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.nav-links span {
+  margin-left: 20px;
+  cursor: pointer;
+}
+
+.nav-links .active {
+  font-weight: bold;
+  color: #007acc;
+}
+
+/* Title */
+.page-title {
+  margin-bottom: 5px;
+}
+
+.page-subtitle {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+/* Stat Cards */
+.stat-cards {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.card {
+  flex: 1;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.placeholder {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.5rem;
+  color: #ccc;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 20px;
+  background: #eee;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.tabs span {
+  cursor: pointer;
+}
+
+.tabs .active {
+  font-weight: bold;
+  color: #007acc;
+}
+
+/* Placeholders */
+.chart-placeholder,
+.activity-placeholder {
+  background: white;
+  padding: 20px;
+  text-align: center;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.dashboard-container {
+  padding: 20px;
+  max-width: 1000px;
+  margin: auto;
+  font-family: Arial, sans-serif;
+}
+
+.dashboard-header {
+  margin-bottom: 20px;
+}
+
+.dashboard-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.dashboard-tab {
+  padding: 10px 20px;
+  border: none;
+  background: #f0f0f0;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+
+.dashboard-tab.active {
+  background: #007bff;
+  color: white;
+}
+
+.dashboard-tab:hover {
+  background: #ddd;
+}
+
+.dashboard-content {
+  padding: 20px;
+  border: 1px solid #eee;
+  background: white;
+  border-radius: 5px;
+}

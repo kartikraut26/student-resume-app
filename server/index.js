@@ -34,28 +34,36 @@ app.post("/generate-resume-content", async (req, res) => {
   const { fullName, email, phone, education, experience, projects, skills } = userData;
 
   const prompt = `
-Generate a professional resume summary, career objective, and skill highlights for a candidate with the following information:
+  You are a professional resume writer. Using the information below, create a compelling and ATS-friendly resume Summary, Career Objective, and Skill Highlights.
+  Write the **Summary** and **Career Objective** in **first-person** using pronouns like "I", "my", and "me". 
+  Do NOT use my name in these sections. 
+  Do NOT refer to me as "the candidate" or "this person". 
+  Write in a confident, professional, and concise tone.
 
-Name: ${fullName}
-Email: ${email}
-Phone: ${phone}
+  Details:
+  Education: ${JSON.stringify(education)}
+  Experience: ${JSON.stringify(experience)}
+  Projects: ${JSON.stringify(projects)}
+  Skills: ${skills}
 
-Education: ${JSON.stringify(education)}
-Experience: ${JSON.stringify(experience)}
-Projects: ${JSON.stringify(projects)}
-Skills: ${skills}
+  Instructions for writing:
+  1. **Summary**: 3–4 sentences in first-person highlighting my background, technical expertise, and achievements. Mention tools, technologies, and accomplishments naturally without listing them mechanically.
+  2. **Career Objective**: 1–2 concise sentences in first-person describing my career goals, passion for technology, and how I aim to contribute to an organization.
+  3. **Skills**: Bullet-point list with each skill starting with a hyphen. Keep phrases complete (e.g., "Proficient in HTML, CSS, and JavaScript" rather than splitting across multiple bullets). Include both technical and soft skills.
 
-Provide the output in this format:
+  Format the output exactly like this:
 
-Summary:
-<summary here>
+  Summary:
+  <summary here>
 
-Career Objective:
-<objective here>
+  Career Objective:
+  <objective here>
 
-Skills:
-<skill list here>
-`;
+  Skills:
+  - <Skill 1>
+  - <Skill 2>
+  - <Skill 3>
+  ...`;
 
   try {
     const response = await cohere.generate({

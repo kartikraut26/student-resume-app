@@ -2,11 +2,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #0b0c10;
+
+  /* Dark gradient */
+  background: linear-gradient(
+    90deg,
+    #0b0c10 0%,
+    #1f2833 100%
+  );
+
   color: white;
   padding: 15px 30px;
   font-family: 'Segoe UI', sans-serif;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 .navbar-logo {

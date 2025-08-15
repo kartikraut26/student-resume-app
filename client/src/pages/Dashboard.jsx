@@ -1,30 +1,40 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { auth } from '../services/firebase';
-import './Dashboard.css';
+import React from "react";
+import "./Dashboard.css";
 
 export default function Dashboard() {
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((authUser) => {
-      if (authUser) {
-        setUser(authUser);
-      } else {
-        navigate('/');
-      }
-    });
-
-    return () => unsubscribe();
-  }, [navigate]);
-
-
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-content">
-        <h1>Hello, {user?.displayName}</h1>
-        <p>Welcome to your dashboard. You can start building your resume and tracking your academic performance here.</p>
+    <div className="performance-dashboard">
+
+      {/* Title */}
+      <h1 className="page-title">Performance Dashboard</h1>
+      <p className="page-subtitle">
+        Track your academic progress and personal development
+      </p>
+
+      {/* Cards */}
+      <div className="stat-cards">
+        <div className="card">Current GPA <br /> <span className="placeholder">—</span></div>
+        <div className="card">Achievements <br /> <span className="placeholder">—</span></div>
+        <div className="card">Skills Improved <br /> <span className="placeholder">—</span></div>
+        <div className="card">Goals Completed <br /> <span className="placeholder">—</span></div>
+      </div>
+
+      {/* Tabs */}
+      <div className="tabs">
+        <span className="active">Performance</span>
+        <span>Skills</span>
+        <span>Achievements</span>
+        <span>Goals</span>
+      </div>
+
+      {/* Chart Placeholder */}
+      <div className="chart-placeholder">
+        📊 Chart under construction
+      </div>
+
+      {/* Recent Activity Placeholder */}
+      <div className="activity-placeholder">
+        🛠 Recent activity section coming soon...
       </div>
     </div>
   );

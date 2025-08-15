@@ -13,6 +13,7 @@ const Resume = () => {
   const [error, setError] = useState("");
   const exportRef = useRef(null);
 
+  // Load user data from Firestore
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -29,6 +30,7 @@ const Resume = () => {
     return () => unsubscribe();
   }, []);
 
+  // Generate AI Resume Content
   const handleGenerate = async () => {
     if (!userData) {
       setError("User data not loaded yet.");
@@ -50,47 +52,50 @@ const Resume = () => {
     }
   };
 
+  // Export PDF
   const handleExportPDF = () => {
-  const element = document.getElementById("pdf-content");
+    const element = document.getElementById("pdf-content");
 
-  const opt = {
-    margin: [0.4, 0.4, 0.4, 0.4], // top, left, bottom, right (in inches)
-    filename: "SkillSync_Resume.pdf",
-    image: { type: "jpeg", quality: 0.98 },
-    html2canvas: {
-      scale: 2,
-      useCORS: true,
-      scrollX: 0,
-      scrollY: 0,
-      windowWidth: document.body.scrollWidth,
-      backgroundColor: "#ffffff"
-    },
-    jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
-    pagebreak: {
-      mode: ["avoid-all", "css", "legacy"]
-    }
+    const opt = {
+      margin: [0.4, 0.4, 0.4, 0.4], // inches
+      filename: "SkillSync_Resume.pdf",
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: document.body.scrollWidth,
+        backgroundColor: "#ffffff"
+      },
+      jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
+      pagebreak: { mode: ["avoid-all", "css", "legacy"] }
+    };
+
+    html2pdf().set(opt).from(element).save();
   };
 
-  html2pdf().set(opt).from(element).save();
-};
-
-
+  // Extract a text section from AI output
   const extractSection = (label, text) => {
     const regex = new RegExp(`${label}:([\\s\\S]*?)(\\n[A-Z][a-z]+:|$)`);
     const match = text.match(regex);
     return match ? match[1].trim() : "";
   };
 
+  // FIXED: Extract Skills exactly as AI bullet points
   const extractSkills = (label, text) => {
     const skillText = extractSection(label, text);
+
     return skillText
-      .split(/\n|,/)
-      .map(line => line.replace(/^[-*]\s*/, "").trim())
-      .filter(Boolean);
+      .replace(/;\s*/g, "\n") // Convert semicolons to newlines if AI uses them
+      .split(/\r?\n/) // Only split on new lines
+      .map(line => line.replace(/^[-*•]\s*/, "").trim()) // Remove bullet chars
+      .filter(line => line.length > 0);
   };
 
   return (
     <div className="resume-wrapper">
+      <div className="resume-card">
       <h2>AI Resume Builder</h2>
 
       <div className="button-group">
@@ -130,7 +135,9 @@ const Resume = () => {
             )}
 
             <h1 className="name">{userData.fullName || "Your Name"}</h1>
-            <p className="contact">{userData.email || "you@example.com"} | {userData.phone || "Phone Number"}</p>
+            <p className="contact">
+              {userData.email || "you@example.com"} | {userData.phone || "Phone Number"}
+            </p>
             <hr />
 
             <section>
@@ -187,6 +194,7 @@ const Resume = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };
