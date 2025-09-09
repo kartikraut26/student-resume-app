@@ -98,3 +98,63 @@ label {
 img {
   display: block;
 }
+
+/* Extra styles for new features */
+
+.edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 15px;
+  font-size: 0.95rem;
+  margin-bottom: 15px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.edit-btn:hover {
+  background: #0056b3;
+}
+
+.placeholder-hint {
+  font-size: 0.8rem;
+  font-weight: normal;
+  color: #888;
+}
+
+.profile-info-box {
+  background: #f9f9f9;
+  border-left: 5px solid #2575fc;
+  padding: 12px 15px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.go-up-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: #6a11cb;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  transition: 0.3s;
+}
+
+.go-up-btn:hover {
+  background: #3e0080;
+}

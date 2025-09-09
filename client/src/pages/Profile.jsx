@@ -3,6 +3,7 @@ import { auth, db } from '../services/firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import './Profile.css';
 import axios from 'axios';
+import { FaPen, FaArrowUp } from 'react-icons/fa';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -21,6 +22,8 @@ export default function Profile() {
   const [imageFile, setImageFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [showScroll, setShowScroll] = useState(false);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
@@ -55,7 +58,16 @@ export default function Profile() {
       }
     });
 
-    return () => unsubscribe();
+    // Scroll listener for Go Up button
+    const handleScroll = () => {
+      setShowScroll(window.scrollY > 300);
+    };
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   const handleChange = (e) => {
@@ -69,7 +81,7 @@ export default function Profile() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreviewImage(reader.result); // Base64 preview
+        setPreviewImage(reader.result);
       };
       reader.readAsDataURL(file);
     }
@@ -122,6 +134,7 @@ export default function Profile() {
       await setDoc(userRef, parsedData, { merge: true });
 
       alert("✅ Profile saved!");
+      setIsEditing(false);
     } catch (error) {
       console.error("❌ Error occurred while saving profile:", error);
       alert("Failed to save profile.");
@@ -151,37 +164,65 @@ export default function Profile() {
     <div className="profile-wrapper">
       <div className="profile-card">
         <h2>Edit Profile</h2>
+
+        {/* Info Section */}
+        <div className="profile-info-box">
+          <p>ℹ️ Keep your profile updated to build a strong AI-powered resume. Fill details about your education, projects, and skills. Upload a profile picture for better personalization.</p>
+        </div>
+
+        <button className="edit-btn" onClick={() => setIsEditing(!isEditing)}>
+          <FaPen /> {isEditing ? "Cancel Edit" : "Edit"}
+        </button>
+
         <div className="form">
-          <label htmlFor="fullName">Full Name</label>
-          <input id="fullName" name="fullName" placeholder="e.g. John Doe" value={formData.fullName} onChange={handleChange} />
-          
-          <label htmlFor="email">Email</label>
-          <input id="email" name="email" placeholder="e.g. johndoe@email.com" value={formData.email} onChange={handleChange} />
-          
-          <label htmlFor="phone">Phone Number</label>
-          <input id="phone" name="phone" placeholder="e.g. +91 9876543210" value={formData.phone} onChange={handleChange} />
-          
-          <label htmlFor="education">Education</label>
-          <textarea id="education" name="education" placeholder="e.g. B.Sc in CS at XYZ University (2024)" value={formData.education} onChange={handleChange} />
-          
-          <label htmlFor="skills">Skills</label>
-          <textarea id="skills" name="skills" placeholder="e.g. HTML, CSS, JavaScript" value={formData.skills} onChange={handleChange} />
-          
-          <label htmlFor="projects">Projects</label>
-          <textarea id="projects" name="projects" placeholder="e.g. Project Title: Description" value={formData.projects} onChange={handleChange} />
-          
-          <label htmlFor="experience">Experience</label>
-          <textarea id="experience" name="experience" placeholder="e.g. Developer at ABC Corp (2022-2024)" value={formData.experience} onChange={handleChange} />
-          
-          <label htmlFor="certifications">Certifications</label>
-          <textarea id="certifications" name="certifications" placeholder="List each on a new line" value={formData.certifications} onChange={handleChange} />
-          
-          <label htmlFor="objective">Career Objective</label>
-          <textarea id="objective" name="objective" placeholder="Short and clear career goal" value={formData.objective} onChange={handleChange} />
-          
+          <label htmlFor="fullName">
+            Full Name <span className="placeholder-hint">(e.g. John Doe)</span>
+          </label>
+          <input id="fullName" name="fullName" value={formData.fullName} onChange={handleChange} disabled={!isEditing} />
+
+          <label htmlFor="email">
+            Email <span className="placeholder-hint">(e.g. johndoe@email.com)</span>
+          </label>
+          <input id="email" name="email" value={formData.email} onChange={handleChange} disabled={!isEditing} />
+
+          <label htmlFor="phone">
+            Phone Number <span className="placeholder-hint">(e.g. +91 9876543210)</span>
+          </label>
+          <input id="phone" name="phone" value={formData.phone} onChange={handleChange} disabled={!isEditing} />
+
+          <label htmlFor="education">
+            Education <span className="placeholder-hint">(e.g. B.Sc in CS at XYZ University (2024))</span>
+          </label>
+          <textarea id="education" name="education" value={formData.education} onChange={handleChange} disabled={!isEditing} />
+
+          <label htmlFor="skills">
+            Skills <span className="placeholder-hint">(e.g. HTML, CSS, JavaScript)</span>
+          </label>
+          <textarea id="skills" name="skills" value={formData.skills} onChange={handleChange} disabled={!isEditing} />
+
+          <label htmlFor="projects">
+            Projects <span className="placeholder-hint">(e.g. Project Title: Description)</span>
+          </label>
+          <textarea id="projects" name="projects" value={formData.projects} onChange={handleChange} disabled={!isEditing} />
+
+          <label htmlFor="experience">
+            Experience <span className="placeholder-hint">(e.g. Developer at ABC Corp (2022-2024))</span>
+          </label>
+          <textarea id="experience" name="experience" value={formData.experience} onChange={handleChange} disabled={!isEditing} />
+
+          <label htmlFor="certifications">
+            Certifications <span className="placeholder-hint">(List each on a new line)</span>
+          </label>
+          <textarea id="certifications" name="certifications" value={formData.certifications} onChange={handleChange} disabled={!isEditing} />
+
+          <label htmlFor="objective">
+            Career Objective <span className="placeholder-hint">(Short and clear career goal)</span>
+          </label>
+          <textarea id="objective" name="objective" value={formData.objective} onChange={handleChange} disabled={!isEditing} />
+
           <label>Upload Profile Image</label>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <input type="file" accept="image/*" onChange={handleFileChange} />
+            <input type="file" accept="image/*" onChange={handleFileChange} disabled={!isEditing} />
             {(previewImage || formData.profileImage) && (
               <img
                 src={previewImage || formData.profileImage}
@@ -197,16 +238,28 @@ export default function Profile() {
             )}
           </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button onClick={saveProfile} disabled={uploading}>
-              {uploading ? "Saving..." : "Save"}
-            </button>
-            <button type="button" onClick={resetForm}>
-              Reset
-            </button>
-          </div>
+          {isEditing && (
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={saveProfile} disabled={uploading}>
+                {uploading ? "Saving..." : "Save"}
+              </button>
+              <button type="button" onClick={resetForm}>
+                Reset
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Go Up Button */}
+      {showScroll && (
+        <button 
+          className="go-up-btn"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        >
+          <FaArrowUp />
+        </button>
+      )}
     </div>
   );
 }
