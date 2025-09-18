@@ -1,7 +1,8 @@
-const express = require("express");
-const cors = require("cors");
-const dotenv = require("dotenv");
-const { CohereClient } = require("cohere-ai");
+import express from "express";
+import cors from "cors";
+import bodyParser from "body-parser";
+import dotenv from "dotenv";
+import { CohereClient } from "cohere-ai";
 
 dotenv.config();
 
@@ -9,21 +10,20 @@ const app = express();
 const PORT = 8000;
 
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json());
 
-const COHERE_API_KEY = process.env.COHERE_API_KEY;
-
-if (!COHERE_API_KEY) {
+// ✅ Ensure API key exists
+if (!process.env.COHERE_API_KEY) {
   console.error("❌ Missing COHERE_API_KEY in .env file");
   process.exit(1);
 }
 
-// ✅ Create Cohere client (v6+)
+// ✅ Cohere client
 const cohere = new CohereClient({
-  token: COHERE_API_KEY,
+  token: process.env.COHERE_API_KEY,
 });
 
-// ✅ POST endpoint for resume AI generation
+// ✅ Endpoint
 app.post("/generate-resume-content", async (req, res) => {
   const { userData } = req.body;
 
@@ -31,49 +31,34 @@ app.post("/generate-resume-content", async (req, res) => {
     return res.status(400).json({ error: "Missing userData in request body" });
   }
 
-  const { fullName, email, phone, education, experience, projects, skills } = userData;
+  // 📝 Improved prompt (one-line version to avoid formatting issues in JS string)
+  const prompt = `You are a professional resume writer with expertise in creating ATS-optimized resumes; using the details provided below, generate a strong and compelling Resume Summary, Career Objective, and Skills Section written in first person (using "I", "my", "me"), with the Summary highlighting achievements, the Career Objective being forward-looking, and Skills rewritten into improved, professional, and ATS-friendly bullet points (e.g., instead of "HTML", use "Proficient in HTML5 for building responsive layouts"); do not include my name or refer to me in third person, and output must follow exactly this format:
 
-  const prompt = `
-  You are a professional resume writer. Using the information below, create a compelling and ATS-friendly resume Summary, Career Objective, and Skill Highlights.
-  Write the **Summary** and **Career Objective** in **first-person** using pronouns like "I", "my", and "me". 
-  Do NOT use my name in these sections. 
-  Do NOT refer to me as "the candidate" or "this person". 
-  Write in a confident, professional, and concise tone.
+Summary:
+<summary here>
 
-  Details:
-  Education: ${JSON.stringify(education)}
-  Experience: ${JSON.stringify(experience)}
-  Projects: ${JSON.stringify(projects)}
-  Skills: ${skills}
+Career Objective:
+<objective here>
 
-  Instructions for writing:
-  1. **Summary**: 3–4 sentences in first-person highlighting my background, technical expertise, and achievements. Mention tools, technologies, and accomplishments naturally without listing them mechanically.
-  2. **Career Objective**: 1–2 concise sentences in first-person describing my career goals, passion for technology, and how I aim to contribute to an organization.
-  3. **Skills**: Bullet-point list with each skill starting with a hyphen. Keep phrases complete (e.g., "Proficient in HTML, CSS, and JavaScript" rather than splitting across multiple bullets). Include both technical and soft skills.
+Skills:
+- <Improved Skill 1>
+- <Improved Skill 2>
+- <Improved Skill 3>
+...
 
-  Format the output exactly like this:
-
-  Summary:
-  <summary here>
-
-  Career Objective:
-  <objective here>
-
-  Skills:
-  - <Skill 1>
-  - <Skill 2>
-  - <Skill 3>
-  ...`;
+Details:
+${JSON.stringify(userData, null, 2)}`;
 
   try {
-    const response = await cohere.generate({
-      model: "command-r-plus",
-      prompt: prompt,
-      max_tokens: 300,
-      temperature: 0.7,
+    const response = await cohere.chat({
+      model: "command-a-03-2025", // ✅ Latest supported model
+      messages: [{ role: "user", content: prompt }],
     });
 
-    const generatedText = response.generations[0].text;
+    // Cohere's chat API returns content inside response.message.content
+    const generatedText =
+      response.message?.content?.map((c) => c.text).join("\n") || "";
+
     res.status(200).json({ generatedText });
   } catch (error) {
     console.error("AI generation error:", error);
@@ -81,7 +66,7 @@ app.post("/generate-resume-content", async (req, res) => {
   }
 });
 
-// ✅ Server start
+// ✅ Start server
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });

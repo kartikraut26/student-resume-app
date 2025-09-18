@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth } from '../services/firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import './Navbar.css';
 
 function Navbar() {
@@ -10,14 +11,14 @@ function Navbar() {
   const dropdownRef = useRef(null);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((authUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (authUser) => {
       setUser(authUser);
     });
     return () => unsubscribe();
   }, []);
 
   const handleLogout = () => {
-    auth.signOut().then(() => {
+    signOut(auth).then(() => {
       navigate('/');
     });
   };
@@ -62,7 +63,7 @@ function Navbar() {
             >
               <img
                 src={user?.photoURL 
-                  ? user.photoURL.replace("http://", "https://") 
+                  ? user.photoURL 
                   : "https://www.w3schools.com/howto/img_avatar.png"}
                 onError={(e) => { e.target.src = "https://www.w3schools.com/howto/img_avatar.png"; }}
                 alt={user?.displayName || "User"}

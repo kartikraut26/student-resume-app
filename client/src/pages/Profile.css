@@ -158,3 +158,14 @@ img {
 .go-up-btn:hover {
   background: #3e0080;
 }
+
+/* Error text styling */
+.error-text {
+  color: red;
+  font-size: 0.85rem;
+  margin-top: -8px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

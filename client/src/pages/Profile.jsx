@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { auth, db } from '../services/firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import './Profile.css';
@@ -19,11 +19,25 @@ export default function Profile() {
     objective: '',
     profileImage: ''
   });
+  const [errors, setErrors] = useState({});
   const [imageFile, setImageFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [showScroll, setShowScroll] = useState(false);
+
+  // Refs for scrolling to first error
+  const inputRefs = {
+    fullName: useRef(null),
+    email: useRef(null),
+    phone: useRef(null),
+    education: useRef(null),
+    skills: useRef(null),
+    projects: useRef(null),
+    experience: useRef(null),
+    certifications: useRef(null),
+    objective: useRef(null)
+  };
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
@@ -72,6 +86,8 @@ export default function Profile() {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    // clear error for the field as user types
+    setErrors(prev => ({ ...prev, [e.target.name]: '' }));
   };
 
   const handleFileChange = (e) => {
@@ -87,8 +103,98 @@ export default function Profile() {
     }
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Full name required
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = "⚠️ Full name is required.";
+    }
+
+    // Email required + format
+    if (!formData.email.trim() || !/^\S+@\S+\.\S+$/.test(formData.email.trim())) {
+      newErrors.email = "⚠️ Please enter a valid email address.";
+    }
+
+    // Phone optional but if present must be numeric with optional + and between 10-15 digits
+    if (formData.phone && !/^\+?\d{10,15}$/.test(formData.phone.replace(/\s+/g, ''))) {
+      newErrors.phone = "⚠️ Invalid phone number format (e.g. +919876543210).";
+    }
+
+    // Education format lines: Degree at Institution (Year)
+    if (formData.education) {
+      const lines = formData.education.split("\n").map(l => l.trim()).filter(Boolean);
+      for (let line of lines) {
+        if (!/^.+ at .+ \(.+\)$/.test(line)) {
+          newErrors.education = "⚠️ Education format: Degree at Institution (Year).";
+          break;
+        }
+      }
+    }
+
+    // Skills comma separated
+    if (formData.skills) {
+      // allow letters, numbers and spaces separated by commas
+      if (!/^([a-zA-Z0-9\s]+)(,\s*[a-zA-Z0-9\s]+)*$/.test(formData.skills.trim())) {
+        newErrors.skills = "⚠️ Skills must be comma-separated (e.g. HTML, CSS, JavaScript).";
+      }
+    }
+
+    // Projects format: Title: Description (each line)
+    if (formData.projects) {
+      const lines = formData.projects.split("\n").map(l => l.trim()).filter(Boolean);
+      for (let line of lines) {
+        if (!/^.+:.+$/.test(line)) {
+          newErrors.projects = "⚠️ Projects format: Title: Description.";
+          break;
+        }
+      }
+    }
+
+    // Experience format: Role at Company (Duration)
+    if (formData.experience) {
+      const lines = formData.experience.split("\n").map(l => l.trim()).filter(Boolean);
+      for (let line of lines) {
+        if (!/^.+ at .+ \(.+\)$/.test(line)) {
+          newErrors.experience = "⚠️ Experience format: Role at Company (Duration).";
+          break;
+        }
+      }
+    }
+
+    // Certifications: no empty lines
+    if (formData.certifications) {
+      const lines = formData.certifications.split("\n");
+      if (lines.some(line => line.trim() === '')) {
+        newErrors.certifications = "⚠️ Certifications must not contain empty lines.";
+      }
+    }
+
+    // Objective length
+    if (formData.objective && formData.objective.trim().length < 10) {
+      newErrors.objective = "⚠️ Career objective should be at least 10 characters.";
+    }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      // scroll to the first error field and focus it
+      const firstErrorField = Object.keys(newErrors)[0];
+      const ref = inputRefs[firstErrorField];
+      if (ref && ref.current) {
+        ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        try { ref.current.focus(); } catch (e) { /* ignore focus errors */ }
+      }
+      return false;
+    }
+
+    return true;
+  };
+
   const saveProfile = async () => {
     if (!user) return;
+    if (!validateForm()) return;
+
     setUploading(true);
 
     try {
@@ -158,6 +264,7 @@ export default function Profile() {
     });
     setImageFile(null);
     setPreviewImage('');
+    setErrors({});
   };
 
   return (
@@ -178,47 +285,119 @@ export default function Profile() {
           <label htmlFor="fullName">
             Full Name <span className="placeholder-hint">(e.g. John Doe)</span>
           </label>
-          <input id="fullName" name="fullName" value={formData.fullName} onChange={handleChange} disabled={!isEditing} />
+          <input
+            id="fullName"
+            ref={inputRefs.fullName}
+            name="fullName"
+            value={formData.fullName}
+            onChange={handleChange}
+            disabled={!isEditing}
+          />
+          {errors.fullName && <p className="error-text">{errors.fullName}</p>}
 
           <label htmlFor="email">
             Email <span className="placeholder-hint">(e.g. johndoe@email.com)</span>
           </label>
-          <input id="email" name="email" value={formData.email} onChange={handleChange} disabled={!isEditing} />
+          <input
+            id="email"
+            ref={inputRefs.email}
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            disabled={!isEditing}
+          />
+          {errors.email && <p className="error-text">{errors.email}</p>}
 
           <label htmlFor="phone">
             Phone Number <span className="placeholder-hint">(e.g. +91 9876543210)</span>
           </label>
-          <input id="phone" name="phone" value={formData.phone} onChange={handleChange} disabled={!isEditing} />
+          <input
+            id="phone"
+            ref={inputRefs.phone}
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            disabled={!isEditing}
+          />
+          {errors.phone && <p className="error-text">{errors.phone}</p>}
 
           <label htmlFor="education">
             Education <span className="placeholder-hint">(e.g. B.Sc in CS at XYZ University (2024))</span>
           </label>
-          <textarea id="education" name="education" value={formData.education} onChange={handleChange} disabled={!isEditing} />
+          <textarea
+            id="education"
+            ref={inputRefs.education}
+            name="education"
+            value={formData.education}
+            onChange={handleChange}
+            disabled={!isEditing}
+          />
+          {errors.education && <p className="error-text">{errors.education}</p>}
 
           <label htmlFor="skills">
             Skills <span className="placeholder-hint">(e.g. HTML, CSS, JavaScript)</span>
           </label>
-          <textarea id="skills" name="skills" value={formData.skills} onChange={handleChange} disabled={!isEditing} />
+          <textarea
+            id="skills"
+            ref={inputRefs.skills}
+            name="skills"
+            value={formData.skills}
+            onChange={handleChange}
+            disabled={!isEditing}
+          />
+          {errors.skills && <p className="error-text">{errors.skills}</p>}
 
           <label htmlFor="projects">
             Projects <span className="placeholder-hint">(e.g. Project Title: Description)</span>
           </label>
-          <textarea id="projects" name="projects" value={formData.projects} onChange={handleChange} disabled={!isEditing} />
+          <textarea
+            id="projects"
+            ref={inputRefs.projects}
+            name="projects"
+            value={formData.projects}
+            onChange={handleChange}
+            disabled={!isEditing}
+          />
+          {errors.projects && <p className="error-text">{errors.projects}</p>}
 
           <label htmlFor="experience">
             Experience <span className="placeholder-hint">(e.g. Developer at ABC Corp (2022-2024))</span>
           </label>
-          <textarea id="experience" name="experience" value={formData.experience} onChange={handleChange} disabled={!isEditing} />
+          <textarea
+            id="experience"
+            ref={inputRefs.experience}
+            name="experience"
+            value={formData.experience}
+            onChange={handleChange}
+            disabled={!isEditing}
+          />
+          {errors.experience && <p className="error-text">{errors.experience}</p>}
 
           <label htmlFor="certifications">
             Certifications <span className="placeholder-hint">(List each on a new line)</span>
           </label>
-          <textarea id="certifications" name="certifications" value={formData.certifications} onChange={handleChange} disabled={!isEditing} />
+          <textarea
+            id="certifications"
+            ref={inputRefs.certifications}
+            name="certifications"
+            value={formData.certifications}
+            onChange={handleChange}
+            disabled={!isEditing}
+          />
+          {errors.certifications && <p className="error-text">{errors.certifications}</p>}
 
           <label htmlFor="objective">
             Career Objective <span className="placeholder-hint">(Short and clear career goal)</span>
           </label>
-          <textarea id="objective" name="objective" value={formData.objective} onChange={handleChange} disabled={!isEditing} />
+          <textarea
+            id="objective"
+            ref={inputRefs.objective}
+            name="objective"
+            value={formData.objective}
+            onChange={handleChange}
+            disabled={!isEditing}
+          />
+          {errors.objective && <p className="error-text">{errors.objective}</p>}
 
           <label>Upload Profile Image</label>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
@@ -253,7 +432,7 @@ export default function Profile() {
 
       {/* Go Up Button */}
       {showScroll && (
-        <button 
+        <button
           className="go-up-btn"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         >

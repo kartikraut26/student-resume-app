@@ -101,6 +101,19 @@ const Resume = () => {
     }
   };
 
+  // ✅ Remove all suggestions
+  const handleRemoveAllSuggestions = async () => {
+    if (!auth.currentUser) return;
+    try {
+      const docRef = doc(db, "users", auth.currentUser.uid);
+      await updateDoc(docRef, { suggestions: [] });
+      setRecentSuggestions([]);
+    } catch (err) {
+      console.error("Error removing all suggestions:", err);
+      setError("Failed to remove suggestions.");
+    }
+  };
+
   // Export PDF
   const handleExportPDF = () => {
     const element = document.getElementById("pdf-content");
@@ -134,9 +147,13 @@ const Resume = () => {
   const extractSkills = (label, text) => {
     const skillText = extractSection(label, text);
     return skillText
-      .replace(/;\s*/g, "\n")
       .split(/\r?\n/)
-      .map(line => line.replace(/^[-*•]\s*/, "").trim())
+      .map(line => {
+        const parts = line.split("**");
+        return parts.map((part, i) =>
+          i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+        );
+      })
       .filter(line => line.length > 0);
   };
 
@@ -271,6 +288,26 @@ const Resume = () => {
           </div>
         )}
 
+        {/* ✅ Remove All Suggestions Button */}
+        {recentSuggestions.length > 0 && (
+          <div style={{ textAlign: "center", margin: "1.5rem 0" }}>
+            <button 
+              onClick={handleRemoveAllSuggestions} 
+              style={{
+                padding: "10px 18px",
+                border: "none",
+                borderRadius: "20px",
+                background: "#e74c3c",
+                color: "white",
+                fontWeight: "bold",
+                cursor: "pointer"
+              }}
+            >
+              Remove All Suggestions
+            </button>
+          </div>
+        )}
+
         {/* Recent Suggestions */}
         {recentSuggestions.length > 0 && (
           <div className="recent-suggestions" ref={recentRef}>
@@ -289,12 +326,12 @@ const Resume = () => {
 
       {/* Scroll to Top button */}
       {showScroll && (
-                <button 
-                  className="go-up-btn"
-                  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                >
-                  <FaArrowUp />
-                </button>
+        <button 
+          className="go-up-btn"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        >
+          <FaArrowUp />
+        </button>
       )}
     </div>
   );
